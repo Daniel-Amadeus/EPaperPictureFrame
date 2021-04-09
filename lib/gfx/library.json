@@ -1,0 +1,29 @@
+{
+    "name": "uGFX",
+    "keywords": "uGFX, graphics, windowing",
+    "description": "Portable graphics library",
+    "version": "2.7",
+    "repository":
+    {
+        "type": "git",
+        "url": "https://git.ugfx.io/uGFX/uGFX"
+    },
+    "build": {
+        "srcFilter": [
+            "+<driver_ws75bepd.c>",
+            "+<gfx.c>",
+            "+<ugfx/src/*/>",
+            "-<ugfx/src/*/*_mk.c>",
+            "-<ugfx/src/gdisp/fonts/*.c>",
+            "+<ugfx/src/gdisp/fonts/DejaVuSans16.c>",
+            "+<ugfx/src/gdisp/fonts/DejaVuSans32*.c>",
+            "-<ugfx/3rdparty/>",
+            "-<ugfx/boards/>",
+            "-<ugfx/demos/>",
+            "-<ugfx/drivers/gdisp/QImage>",
+            "-<ugfx/drivers/ginput/touch/Linux-Event>",
+            "-<ugfx/drivers/>"
+        ] 
+    },
+    "frameworks": "*"
+}

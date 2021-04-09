@@ -1,0 +1,3 @@
+[submodule "lib/gfx/ugfx"]
+	path = lib/gfx/ugfx
+	url = https://github.com/Bartzi/ugfx.git
