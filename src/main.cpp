@@ -1,5 +1,7 @@
 #include <Arduino.h>
 
+#include "config.h"
+
 extern "C"
 {
 #include "gfx.h"
@@ -18,9 +20,6 @@ extern "C"
 #include "soc/soc.h"
 #include "soc/rtc_cntl_reg.h"
 #include "rom/rtc.h"
-
-const char *ssid = "";
-const char *password = "";
 
 const uint64_t uS_TO_S_FACTOR = 1000000;
 const uint64_t S_TO_H_FACTOR = 3600;
@@ -164,7 +163,7 @@ void loadImage(const String &url, std::unique_ptr<uint8_t[]> &image)
 void draw()
 {
   std::unique_ptr<uint8_t[]> image;
-  loadImage("imageurl", image);
+  loadImage(imageUrl, image);
 
   Serial.println("start drawing");
   gfxInit();
@@ -280,7 +279,7 @@ void showIp()
   gfxInit();
   GDisplay *display = gdispGetDisplay(0);
   gdispSetOrientation(GDISP_ROTATE_180);
-  auto text = WiFi.localIP().toString().c_str();
+  auto text = ("ip: " + WiFi.localIP().toString()).c_str();
   font_t font = gdispOpenFont("DejaVuSans20");
   gdispGDrawString(display, 100, 100, text, font, GFX_BLACK);
   gdispCloseFont(font);
