@@ -23,6 +23,8 @@ extern "C"
 #include "soc/rtc_cntl_reg.h"
 #include "rom/rtc.h"
 
+#include "SPIFFS.h"
+
 const uint64_t uS_TO_S_FACTOR = 1000000;
 const uint64_t S_TO_H_FACTOR = 3600;
 const uint64_t H_TO_SLEEP = 1;
@@ -277,6 +279,28 @@ void showIp()
   gdispGFlush(display);
 }
 
+String readFile(const char *fileName)
+{
+  if (!SPIFFS.begin(true))
+  {
+    Serial.println("An Error has occurred while mounting SPIFFS");
+    return "An Error has occurred while mounting SPIFFS";
+  }
+
+  File file = SPIFFS.open(fileName);
+  if (!file)
+  {
+    Serial.println("Failed to open file for reading");
+    return "Failed to open file for reading";
+  }
+
+  Serial.println("File Content:");
+  auto content = file.readString();
+  Serial.println(content);
+  file.close();
+  return content;
+}
+
 void setup()
 {
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
@@ -289,7 +313,7 @@ void setup()
   {
     server = new AsyncWebServer(80);
     server->on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-      request->send(200, "text/html", "<a href='/update'>upload new firmware</a>");
+      request->send(200, "text/html", readFile("/index.html"));
     });
 
     AsyncElegantOTA.begin(server); // Start ElegantOTA
