@@ -17,6 +17,8 @@ extern "C"
 #include <ESPAsyncWebServer.h>
 #include <AsyncElegantOTA.h>
 
+#include <ESPAsyncWiFiManager.h>
+
 #include "soc/soc.h"
 #include "soc/rtc_cntl_reg.h"
 #include "rom/rtc.h"
@@ -101,23 +103,12 @@ std::unique_ptr<uint8_t[]> fetchImage(const String &url)
 
 bool connectToWifi()
 {
-  Serial.println("Connecting to " + String(ssid));
-  WiFi.mode(WIFI_STA);
-  delay(2000);
-  WiFi.begin(ssid, password);
-
-  uint counter = 0;
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    delay(500);
-    Serial.print(".");
-    if (counter > 100)
-    {
-      return false;
-    }
-    counter++;
-  }
-  Serial.println("Connected!");
+  server = new AsyncWebServer(80);
+  DNSServer dns;
+  AsyncWiFiManager wifiManager(server, &dns);
+  // wifiManager.resetSettings();
+  wifiManager.autoConnect("E-Paper Pictureframe");
+  delete server;
   return true;
 }
 
