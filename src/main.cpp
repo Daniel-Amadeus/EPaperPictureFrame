@@ -23,7 +23,14 @@ extern "C"
 #include "soc/rtc_cntl_reg.h"
 #include "rom/rtc.h"
 
+#include <ArduinoJson.h>
+
 #include "SPIFFS.h"
+
+struct Config
+{
+  char imageUrl[64] = "";
+};
 
 const uint64_t uS_TO_S_FACTOR = 1000000;
 const uint64_t S_TO_H_FACTOR = 3600;
@@ -38,6 +45,8 @@ const int daylightOffset_sec = 3600;
 GDisplay *display;
 
 AsyncWebServer *server;
+
+Config config;
 
 std::unique_ptr<uint8_t[]> fetchImage(const String &url)
 {
@@ -156,7 +165,7 @@ void loadImage(const String &url, std::unique_ptr<uint8_t[]> &image)
 void draw()
 {
   std::unique_ptr<uint8_t[]> image;
-  loadImage(imageUrl, image);
+  loadImage(config.imageUrl, image);
 
   Serial.println("start drawing");
   gfxInit();
@@ -301,12 +310,46 @@ String readFile(const char *fileName)
   return content;
 }
 
+void loadConfiguration(const char *fileName, Config &config)
+{
+
+  if (!SPIFFS.begin(true))
+  {
+    Serial.println("An Error has occurred while mounting SPIFFS");
+    return;
+  }
+  // Open file for reading
+  File file = SPIFFS.open(fileName);
+
+  // Allocate a temporary JsonDocument
+  // Don't forget to change the capacity to match your requirements.
+  // Use arduinojson.org/v6/assistant to compute the capacity.
+  StaticJsonDocument<512> doc;
+
+  // Deserialize the JSON document
+  DeserializationError error = deserializeJson(doc, file);
+  if (error)
+    Serial.println(F("Failed to read file, using default configuration"));
+
+  // Copy values from the JsonDocument to the Config
+  strlcpy(config.imageUrl,                 // <- destination
+          doc["imageUrl"] | "example.com", // <- source
+          sizeof(config.imageUrl));        // <- destination's capacity
+
+  // Close the file (Curiously, File's destructor doesn't close the file)
+  file.close();
+}
+
 void setup()
 {
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
   Serial.begin(115200);
   delay(10);
   connectToWifi();
+
+  loadConfiguration("/config.json", config);
+  Serial.print("imageUrl: ");
+  Serial.println(config.imageUrl);
 
   print_reset_reason(rtc_get_reset_reason(0));
   if (rtc_get_reset_reason(0) == POWERON_RESET)
